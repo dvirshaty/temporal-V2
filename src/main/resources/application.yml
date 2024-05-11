@@ -1,0 +1,69 @@
+server:
+  port: 8080
+
+management:
+  endpoint:
+    health:
+      show-details: "ALWAYS"
+    web:
+      exposure:
+        include: "*"
+
+spring:
+  application:
+    name: temporal-demo
+  datasource:
+    url: jdbc:postgresql://localhost:5432/mydb
+    username: myuser
+    password: mypassword
+    initialization-mode: always
+    initialize: true
+    driverClassName: org.postgresql.Driver
+    platform: postgres
+  jpa:
+    database: POSTGRESQL
+    show-sql: true
+    generate-ddl: true
+    hibernate:
+      ddl-auto: update
+  sleuth:
+    otel:
+      config:
+        trace-id-ratio-based: 1
+      exporter:
+        otlp:
+          endpoint: http://127.0.0.1:4317
+    propagation:
+      type: W3C
+  temporal:
+    connection:
+      target: 127.0.0.1:7233
+      target.namespace: default
+    workers:
+      - task-queue: "HsiaTaskQueue"
+        capacity:
+          max-concurrent-workflow-task-pollers: 6
+          max-concurrent-activity-task-pollers: 6
+        rate-limits:
+          max-worker-activities-per-second: 0
+          max-task-queue-activities-per-second: 0
+      - task-queue: "DvirTaskQueue"
+        capacity:
+          max-concurrent-workflow-task-pollers: 0
+          max-concurrent-activity-task-pollers: 0
+        rate-limits:
+          max-worker-activities-per-second: 0
+          max-task-queue-activities-per-second: 0
+    workflow-cache:
+      max-instances: 10
+      max-threads: 10
+    workersAutoDiscovery:
+      packages: com.temporal
+abr-client-configuration:
+  baseUrl: "http://localhost/restservices/abrgenerate/v1/abrs"
+  username: "111"
+  password: "222"
+
+hsia-workflow-saga:
+  waitForAtpSeconds: 50
+  waitForHsiaCallbackSeconds: 50
