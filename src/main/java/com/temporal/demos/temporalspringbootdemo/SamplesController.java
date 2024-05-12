@@ -75,16 +75,15 @@ public class SamplesController {
         return ResponseEntity.ok(true);
     }
 
-    @GetMapping("/att")
-    public ResponseEntity<List<WorkflowExecutionMetadata>> getWorkflowsBySAART(String name) {
+    @GetMapping("/att/{name}")
+    public ResponseEntity<List<String>> getWorkflowsBySAART(@PathVariable String name) {
         try {
 
 
-            List<WorkflowExecutionMetadata> list = client.listExecutions("WorkflowType = 'HsiaWorkflowSaga' and dogName='dvir'" ).distinct().toList();
-            WorkflowExecutionMetadata workflowExecutionMetadata = list.get(0);
+            List<WorkflowExecutionMetadata> list = client.listExecutions(String.format("WorkflowType = 'HsiaWorkflowSaga' and dogName='%s'",name)).distinct().toList();
 
 
-            return ResponseEntity.ok(list);
+            return ResponseEntity.ok(list.stream().map(workflowExecutionMetadata1 -> workflowExecutionMetadata1.getExecution().getWorkflowId()).toList());
 
         } catch (Exception e) {
             e.printStackTrace();
@@ -118,6 +117,7 @@ public class SamplesController {
         log.info("workflow setATPSignal - {}", uuid);
         HsiaWorkflowSaga workflow = client.newWorkflowStub(HsiaWorkflowSaga.class, uuid);
         workflow.cancelFlow();
+
      /*   WorkflowStub stub = client.newUntypedWorkflowStub(uuid, Optional.empty(), Optional.empty());
         stub.cancel();
 */

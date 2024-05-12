@@ -12,12 +12,10 @@ import com.temporal.demos.temporalspringbootdemo.repository.HisaRepository;
 import com.temporal.demos.temporalspringbootdemo.repository.model.Hsia;
 import com.temporal.demos.temporalspringbootdemo.service.SomeService;
 import io.temporal.activity.ActivityOptions;
-import io.temporal.client.WorkflowClient;
-import io.temporal.client.WorkflowStub;
 import io.temporal.common.RetryOptions;
 import io.temporal.failure.CanceledFailure;
+import io.temporal.internal.sync.WorkflowThread;
 import io.temporal.spring.boot.WorkflowImpl;
-import io.temporal.workflow.CancelExternalWorkflowException;
 import io.temporal.workflow.CancellationScope;
 import io.temporal.workflow.Saga;
 import io.temporal.workflow.Workflow;
@@ -26,10 +24,7 @@ import org.slf4j.Logger;
 import org.springframework.util.CollectionUtils;
 
 import java.time.Duration;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.Optional;
 
 @WorkflowImpl(taskQueues = {"HsiaTaskQueue"})
 @RequiredArgsConstructor
@@ -68,33 +63,36 @@ public class HsiaWorkflowSageImpl implements HsiaWorkflowSaga {
     public void validateAndExecute(HsiaDto input) {
         scope = Workflow.newCancellationScope(() -> {
             // Your workflow code here.
+            try {
+                logger.info("start workflow !!!");
 
+                //  ssdfActivity.getAbr();
+                saga.addCompensation(compensateActivity::compensate, input);
+                setAbrActivity.setAbr(input);
+                logger.info("wait for ATP");
+                //   Workflow.await(Duration.ofSeconds(600), () -> isAtpCallback);
+                //  atpCallbackActivity.handleAtpCallback(isAtpCallback);
+                Workflow.sleep(800000);
+                hsiaActivity.submitHsia(input);
+                saga.addCompensation(compensateActivity::compensate2, input);
+                logger.info("wait for BRASS callback");
+                Workflow.await(Duration.ofSeconds(hsiaWorkflowConfig.getWaitForHsiaCallbackSeconds()), () -> isBrassCallback);
+                hsiaActivity.sspCallback(input);
+                logger.info("Done workflow !!!");
 
-        /*        saveToDB(input);*/
-        try {
-            logger.info("start workflow !!!");
+            } catch (CanceledFailure e) {
+                CancellationScope cancellationScope = Workflow.newDetachedCancellationScope(() -> {
+                    logger.info("CancelExternalWorkflowException failed, try to compensate");
+                    compensateActivity.compensate(input);
+                    CancellationScope.throwCanceled();
+                });
+                cancellationScope.run();
 
-            //  ssdfActivity.getAbr();
-            saga.addCompensation(compensateActivity::compensate, input);
-            setAbrActivity.setAbr(input);
-            logger.info("wait for ATP");
-            Workflow.await(Duration.ofSeconds(600), () -> isAtpCallback);
-            //  atpCallbackActivity.handleAtpCallback(isAtpCallback);
+            } catch (Exception e) {
+                logger.info(e.getClass().getName());
+                logger.info("workflow failed, try to compensate");
 
-            hsiaActivity.submitHsia(input);
-            saga.addCompensation(compensateActivity::compensate2, input);
-            logger.info("wait for BRASS callback");
-            Workflow.await(Duration.ofSeconds(hsiaWorkflowConfig.getWaitForHsiaCallbackSeconds()), () -> isBrassCallback);
-            hsiaActivity.sspCallback(input);
-            logger.info("Done workflow !!!");
-
-        }catch (CanceledFailure e){
-            logger.info("CancelExternalWorkflowException failed, try to compensate");
-        }catch (Exception e) {
-            logger.info(e.getClass().getName());
-            logger.info("workflow failed, try to compensate");
-
-        }
+            }
         });
         scope.run();
     }
@@ -124,10 +122,10 @@ public class HsiaWorkflowSageImpl implements HsiaWorkflowSaga {
     public void cancelFlow() {
         logger.info("cancelFlow!");
         logger.info(Workflow.getInfo().getWorkflowId());
+        if (!isAtpCallback) {
+            scope.cancel("cancel me please");
+        }
 
-        scope.cancel("dsadsdas");
-
-        logger.info("cancelFlow2 !");
     }
 
 
