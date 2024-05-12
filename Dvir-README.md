@@ -9,7 +9,7 @@ PS C:\Repos\temporal-poc> temporal operator search-attribute create --name dogNa
 Search attributes have been added
 PS C:\Repos\temporal-poc>
 
-
+temporal server start-dev --dynamic-config-value frontend.enableUpdateWorkflowExecution=true
 
 
 ## Links

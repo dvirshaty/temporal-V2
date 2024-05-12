@@ -18,7 +18,7 @@ public interface HsiaWorkflowSaga {
     @SignalMethod
     void setBrassCallback();
 
-    @SignalMethod
+    @UpdateMethod
     void cancelFlow();
 
 }
