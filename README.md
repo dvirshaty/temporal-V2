@@ -1,7 +1,18 @@
 # Temporal Spring Boot Integration Demo
 
-## Links
 
+
+## Add custom search-attribute
+All services are stopped.
+PS C:\Repos\temporal-poc> temporal operator search-attribute create --name SAARTID --type Keyword --namespace default
+Search attributes have been added
+PS C:\Repos\temporal-poc> temporal operator search-attribute create --name dogName --type Keyword --namespace default
+Search attributes have been added
+PS C:\Repos\temporal-poc>
+
+temporal server start-dev --dynamic-config-value frontend.enableUpdateWorkflowExecution=true
+
+## Links
 * [Temporal Java SDK](https://github.com/temporalio/sdk-java)
 * [Spring Boot Integration package](https://github.com/temporalio/sdk-java/tree/master/temporal-spring-boot-autoconfigure-alpha)
 
