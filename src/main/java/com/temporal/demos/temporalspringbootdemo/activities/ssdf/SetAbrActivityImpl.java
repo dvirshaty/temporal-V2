@@ -2,12 +2,16 @@ package com.temporal.demos.temporalspringbootdemo.activities.ssdf;
 
 import com.temporal.demos.temporalspringbootdemo.dto.HsiaDto;
 import com.temporal.demos.temporalspringbootdemo.exception.NonRetryException;
+import io.temporal.common.SearchAttributeKey;
+import io.temporal.common.SearchAttributes;
 import io.temporal.spring.boot.ActivityImpl;
 import io.temporal.workflow.Workflow;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.springframework.stereotype.Component;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Random;
 
 @Component
@@ -31,4 +35,6 @@ public class SetAbrActivityImpl implements SetAbrActivity {
 
 
     }
+
+
 }

@@ -7,5 +7,6 @@ import io.temporal.activity.ActivityInterface;
 public interface SetAbrActivity {
 
     public void setAbr(HsiaDto input);
+
 }
 

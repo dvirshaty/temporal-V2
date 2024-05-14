@@ -33,6 +33,7 @@ import io.temporal.serviceclient.WorkflowServiceStubs;
 import io.temporal.serviceclient.WorkflowServiceStubsOptions;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.boot.ansi.Ansi8BitColor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
@@ -81,7 +82,6 @@ public class SamplesController {
 
 
             List<WorkflowExecutionMetadata> list = client.listExecutions(String.format("WorkflowType = 'HsiaWorkflowSaga' and dogName='%s'",name)).distinct().toList();
-
 
             return ResponseEntity.ok(list.stream().map(workflowExecutionMetadata1 -> workflowExecutionMetadata1.getExecution().getWorkflowId()).toList());
 

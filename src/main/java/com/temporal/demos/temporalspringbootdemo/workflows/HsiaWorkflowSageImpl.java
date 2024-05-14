@@ -1,5 +1,6 @@
 package com.temporal.demos.temporalspringbootdemo.workflows;
 
+import com.google.common.collect.Lists;
 import com.temporal.demos.temporalspringbootdemo.activities.compensate.CompensateActivity;
 import com.temporal.demos.temporalspringbootdemo.activities.hsia.HsiaActivity;
 import com.temporal.demos.temporalspringbootdemo.activities.ssdf.AtpCallbackActivity;
@@ -13,6 +14,9 @@ import com.temporal.demos.temporalspringbootdemo.repository.model.Hsia;
 import com.temporal.demos.temporalspringbootdemo.service.SomeService;
 import io.temporal.activity.ActivityOptions;
 import io.temporal.common.RetryOptions;
+import io.temporal.common.SearchAttributeKey;
+import io.temporal.common.SearchAttributeUpdate;
+import io.temporal.common.SearchAttributes;
 import io.temporal.failure.CanceledFailure;
 import io.temporal.internal.sync.WorkflowThread;
 import io.temporal.spring.boot.WorkflowImpl;
@@ -24,7 +28,9 @@ import org.slf4j.Logger;
 import org.springframework.util.CollectionUtils;
 
 import java.time.Duration;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @WorkflowImpl(taskQueues = {"HsiaTaskQueue"})
 @RequiredArgsConstructor
@@ -72,12 +78,27 @@ public class HsiaWorkflowSageImpl implements HsiaWorkflowSaga {
                 logger.info("wait for ATP");
                 //   Workflow.await(Duration.ofSeconds(600), () -> isAtpCallback);
                 //  atpCallbackActivity.handleAtpCallback(isAtpCallback);
-                Workflow.sleep(800000);
-                hsiaActivity.submitHsia(input);
-                saga.addCompensation(compensateActivity::compensate2, input);
-                logger.info("wait for BRASS callback");
+                SearchAttributes typedSearchAttributes = Workflow.getTypedSearchAttributes();
+                String origName = typedSearchAttributes.get(SearchAttributeKey.forKeyword("dogName"));
+                for(int i=0 ; i < 10; i++){
+                    Workflow.sleep(5000);
+
+                    SearchAttributes typedSearchAttributes2 = Workflow.getTypedSearchAttributes();
+                    String dogName = typedSearchAttributes2.get(SearchAttributeKey.forKeyword("dogName"));
+                    logger.info("Iteration {} dogName {}", i , dogName);
+                    dogName = origName + i;
+                    logger.info("Iteration {} new value {}", i , dogName);
+
+
+                       Workflow.upsertTypedSearchAttributes(SearchAttributeUpdate.valueSet(SearchAttributeKey.forKeyword("dogName") , dogName));
+
+                }
+
+             /*   hsiaActivity.submitHsia(input);
+                saga.addCompensation(compensateActivity::compensate2, input);*/
+   /*             logger.info("wait for BRASS callback");
                 Workflow.await(Duration.ofSeconds(hsiaWorkflowConfig.getWaitForHsiaCallbackSeconds()), () -> isBrassCallback);
-                hsiaActivity.sspCallback(input);
+                hsiaActivity.sspCallback(input);*/
                 logger.info("Done workflow !!!");
 
             } catch (CanceledFailure e) {
